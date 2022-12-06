@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -28,7 +30,28 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:admin,guru',
+            'username' => 'required|string|unique:users,username',
+            'password' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $msg = $validator->errors();
+
+            return failedResponse($msg, 422);
+        }
+
+        $user = new User();
+        $user->type = $request->type;
+        $user->username = $request->username;
+        $user->password = Hash::make($request->password);
+        $saveUser = $user->save();
+        if ($saveUser) {
+            return success($user, 201);
+        } else {
+            return failedResponse('User gagal ditambahkan!', 500);
+        }
     }
 
     /**
@@ -39,7 +62,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return success($user, 200);
     }
 
     /**
@@ -51,7 +74,30 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:admin,guru',
+            'username' => 'required|string|unique:users,username',
+            'password' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $msg = $validator->errors();
+
+            return failedResponse($msg, 422);
+        }
+
+        $user->type = $request->type;
+        $user->username = $request->username;
+        if ($request->has('password')) {
+            $user->password = $request->password ? Hash::make($request->password) : $user->password;
+        }
+        $saved = $user->save();
+
+        if ($saved) {
+            return success($user, 200);
+        } else {
+            return failedResponse('User gagal diupdate!', 500);
+        }
     }
 
     /**
@@ -62,6 +108,12 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $deleteData = $user->delete();
+
+        if ($deleteData) {
+            return success(null, 200);
+        } else {
+            return failedResponse('User gagal dihapus!', 500);
+        }
     }
 }

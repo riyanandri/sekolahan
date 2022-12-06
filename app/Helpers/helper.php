@@ -9,3 +9,13 @@ function success($data, $statusCode, $message = 'success')
         'status_code' => $statusCode,
     ], $statusCode);
 }
+
+function failedResponse($message, $statusCode)
+{
+    return response()->json([
+        'status' => false,
+        'message' => $message,
+        'data' => null,
+        'status_code' => $statusCode,
+    ], $statusCode);
+}
